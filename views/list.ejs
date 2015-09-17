@@ -1,0 +1,52 @@
+<%- include header %>
+
+    <div class="banner">
+      <img class="banner-img" src="<%=pageParam.pageImage%>">
+      <div class="banner-text">
+        <div class="container">
+          <h1><%=pageParam.pageTitle%></h1>
+          <p><%=pageParam.pageDesc%></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="row">
+        <div class="col-xs-12 col-md-8">
+          <div class="row list">
+            <% posts.forEach(function(post, index){ %>
+            <div class="col-xs-12 col-md-6">
+              <article id="article-1">
+                <img src="images/bg.jpg" width="360" height="180">
+                <div class="desc">
+                  <a href="/p/<%= post._id %>"><h2><%= post.title %></h2></a>
+                  <p>
+                    <author>
+                      <span class="glyphicon glyphicon-pencil"></span><%= post.poster %>
+                    </author>
+                    <timestamp>
+                      <span class="glyphicon glyphicon-time"></span><%= post.createTime %>
+                    </timestamp>
+                  </p>
+                  <p><%= post.contents.substring(0,100)+"..." %></p>
+                  <p class="tags">
+                    <a class="btn btn-xs tag-acg" href="/tag/acg">ACG</a>
+                    <a class="btn btn-xs tag-life" href="/tag/life">LIFE</a>
+                    <a class="btn btn-xs tag-php" href="/tag/php">PHP</a>
+                    <a class="btn btn-xs tag-js" href="/tag/js">JS</a>
+                  </p>
+                </div>
+              </article>
+            </div>
+            <% if (index % 2 == 1) {%>
+            <div class="clearfix visible-nm"></div>
+            <% } %>
+            <% }) %>
+          </div>
+        </div>
+
+        <%- include side %>
+      </div>
+    </div><!-- /.container -->
+
+<%- include footer %>

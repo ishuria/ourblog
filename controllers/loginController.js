@@ -1,14 +1,11 @@
 var global_password;
 var global_email;
 
-var config = require('../config');
-var User = require('../models/user');
-var nodemailer = require('nodemailer');
-var smtpTransport = require('nodemailer-smtp-transport');
-var Promise = require('promise');
+var User = require('../dao/indexDAO').User;
 var validator = require('validator');
 var eventproxy = require('eventproxy');
-var mail = require('../modules/mail');
+var mail = require('../common/mail');
+var page = require('../common/pageInit');
 
 function _generatePassword() {
 	var password = Math.round(Math.random() * 8999) + 1000;
@@ -33,28 +30,45 @@ function _sendMail(email) {
 }
 
 exports.showLogin = function(req, res) {
+	page.setViewInit();
+	var params = page.getViewParams();
 	res.render('login', {
-		title: 'Login',
+		pageParam: params.pageParam,
+		pageHeader: params.pageHeader,
+		pageSider: params.pageSider,
+		pageFooter: params.pageFooter,
 		user: req.session.user,
 		error_msg: null
 	});
 }
 
 exports.showLoginPassword = function(req, res) {
+	page.setViewInit();
+	var params = page.getViewParams();
+
 	res.render('loginpwd', {
-		title: 'Login pwd',
+		pageParam: params.pageParam,
+		pageHeader: params.pageHeader,
+		pageSider: params.pageSider,
+		pageFooter: params.pageFooter,
 		user: req.session.user,
 	});
 }
 
 exports.loginGetPassword = function(req, res) {
 	var email = validator.trim(req.body.email).toLowerCase();
+	var params = page.getViewParams();
 	var ep = new eventproxy();
+
+	page.setViewInit();
 
 	ep.on('login_fail', function(msg) {
 		res.status(422);
 		res.render('login', {
-			title: 'Login',
+			pageParam: params.pageParam,
+			pageHeader: params.pageHeader,
+			pageSider: params.pageSider,
+			pageFooter: params.pageFooter,
 			user: req.session.user,
 			error_msg: msg
 		})
@@ -65,7 +79,7 @@ exports.loginGetPassword = function(req, res) {
 		// 产生密码
 		_generatePassword();
 		// 进入DB查找用户是否存在
-		User.getUser(email, function(err, user) {
+		User.getUserByEmail(email, function(err, user) {
 			if (err) {
 				ep.emit('login_fail', '取不到User数据');
 			} else {
@@ -96,19 +110,14 @@ exports.passwordVerify = function(req, res) {
 	var password = _getPassword();
 	var email = _getEmail();
 
-	console.log('email: ' + email);
-
 	if (inputpwd === password) {
-		console.log('Login successful');
-		User.getUser(email, function(err, user) {
+		console.log('====== Verify Success =====');
+		User.getUserByEmail(email, function(err, user){
 			if (err) {
-				// 返回一个没有登录的index
-				res.redirect('/');
-				return err;
+				console.error('db get error');
+				return res.redirect('/');
 			}
-			console.log('user nickname is: ', user.nickName);
 			req.session.user = user;
-			// 返回一个登录了的index
 			res.redirect('/');
 		})
 	} else {

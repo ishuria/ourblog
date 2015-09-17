@@ -1,10 +1,12 @@
-// 初始化userId
-var userId = 0;
-var User = require('../models/user');
+var User = require('../dao/indexDAO').User;
+var page = require('../common/pageInit');
 
 exports.showRegistor = function(req, res) {
+	page.setViewInit();
+	var params = page.getViewParams();
 	res.render('reg', {
-		title: "Registor test",
+		pageHeader: params.pageHeader,
+		pageFooter: params.pageFooter,
 		user: req.session.user
 	});
 }
@@ -16,17 +18,8 @@ exports.registInner = function(req, res) {
 	var about = req.body.about;
 	var lastLogin = new Date().getTime();
 
-	// 创建新的用户
-	var newUser = new User({
-		id: userId,
-		email: email,
-		nickName: nickName,
-		about: about,
-		signiture: signiture,
-		lastLoginTime: lastLogin
-	});
 	//检查用户名是否已经存在 
-	User.getUser(email, function(err, user) {
+	User.getUserByEmail(email, function(err, user) {
 		if (err) {
 			console.log('Get user error');
 			return res.redirect('/reg');
@@ -36,15 +29,13 @@ exports.registInner = function(req, res) {
 			return res.redirect('/reg'); //返回注册页
 		}
 		//如果不存在则新增用户
-		newUser.save(function(err, user) {
+		User.saveNewUser(email, nickName, about, signiture, lastLoginTime, function(err) {
 			if (err) {
 				console.log('aaaaa' + err);
 				return res.redirect('/reg'); //注册失败返回主册页
 			}
 			//req.session.user = user; //用户信息存入 session
 			console.log('registor success');
-			//感谢楼上的精彩装b 下一位
-			userId++;
 			res.redirect('/'); //注册成功后返回主页
 		});
 	});
